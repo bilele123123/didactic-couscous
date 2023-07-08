@@ -21,6 +21,18 @@ AuthorSchema.virtual("name").get(function () {
   return fullname;
 });
 
+AuthorSchema.virtual("lifespan").get(function () {
+  if (this.date_of_birth && this.date_of_death) {
+    const birth = this.date_of_birth.toLocaleDateString("en-US");
+    const death = this.date_of_death.toLocaleDateString("en-US");
+    return `${birth} - ${death}`;
+  } 
+  else 
+  {
+    return `${birth}`;
+  }
+});
+
 // Virtual for author's URL
 AuthorSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
