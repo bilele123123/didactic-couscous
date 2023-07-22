@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const formatDate = require("../helpers/formatDate");
+const { DateTime } = require("luxon");
 
 const Schema = mongoose.Schema;
 
@@ -17,26 +19,38 @@ AuthorSchema.virtual("name").get(function () {
   if (this.first_name && this.family_name) {
     fullname = `${this.family_name}, ${this.first_name}`;
   }
-
-  return fullname;
-});
-
-AuthorSchema.virtual("lifespan").get(function () {
-  if (this.date_of_birth && this.date_of_death) {
-    const birth = this.date_of_birth.toLocaleDateString("en-US");
-    const death = this.date_of_death.toLocaleDateString("en-US");
-    return `${birth} - ${death}`;
-  } 
-  else 
-  {
-    return `${birth}`;
+  if (!this.first_name || !this.family_name) {
+    fullname = "";
   }
+  return fullname;
 });
 
 // Virtual for author's URL
 AuthorSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
   return `/catalog/author/${this._id}`;
+});
+
+// returns date of birth/death in YYYY-MM-DD
+AuthorSchema.virtual("formatted").get(function () {
+  return {
+    date_of_birth: this.date_of_birth
+      ? DateTime.fromJSDate(new Date(this.date_of_birth)).toFormat("yyyy-MM-dd")
+      : "",
+
+    date_of_death: this.date_of_death
+      ? DateTime.fromJSDate(new Date(this.date_of_death)).toFormat("yyyy-MM-dd")
+      : "",
+  };
+});
+
+AuthorSchema.virtual("lifespan").get(function () {
+  let lifespan = "";
+
+  if (this.date_of_birth) lifespan += formatDate(this.date_of_birth);
+  if (this.date_of_death) lifespan += ` - ${formatDate(this.date_of_death)}`;
+
+  return lifespan;
 });
 
 // Export model
